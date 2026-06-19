@@ -63,9 +63,10 @@ def train_one(condition: dict, seed: int) -> float:
 
     # ----------------------------------------------------------------
     # 【穴埋め 1/3】condition（例 {"image_pool": "avg"}）を TinyVLA に渡す。
-    #   ヒント: TinyVLA(vocab_size=..., chunk_len=..., **condition)
+    #   ヒント: extra = condition  とすれば下の **extra で展開して渡せます。
     # ----------------------------------------------------------------
-    model = TinyVLA(vocab_size=tok.vocab_size, chunk_len=CHUNK_LEN, ____).to(device)
+    extra = ____   # ← ここを condition にする
+    model = TinyVLA(vocab_size=tok.vocab_size, chunk_len=CHUNK_LEN, **extra).to(device)
     print(f"  [{condition}] params={count_parameters(model):,}")
     opt = torch.optim.Adam(model.parameters(), lr=LR)
 
