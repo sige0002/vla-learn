@@ -3,23 +3,33 @@
 各章（[`../lessons/`](../lessons/)）には**模擬問題**があります。手を動かして初めて身につくよう、
 1 問 1 概念・短時間で解ける粒度にしてあります。解答は [`../solutions/`](../solutions/) にあります。
 
-## どこに自分のコードを書くか（おすすめ: Jupyter）
+## 演習はどう解く？（問題と答えの場所）
 
-この `exercises/mX/README.md` は**問題文**です。**あなたの答え・実験コードは別の場所**に書きます。
-shape や画像・loss がその場で見える **Jupyter ノートブックが演習に最適**なので、まずはこちらを推奨します。
+この `exercises/mX/README.md` は**問題文**で、答えは [`../solutions/`](../solutions/) にあります。
+**あなたの答えは、これらを直接書き換えるのではなく「作業用ノート」に書きます。**
+shape や画像・loss がその場で見えるので、**Jupyter で解くのがいちばんスムーズ**です。
+
+そのまま開いて使える**ノートブックを用意してあります**（この `.md` から自動生成。正本は `.md` の方）。
 
 ```bash
-uv sync --extra notebook      # 初回のみ（notebook 用の依存を入れる）
-uv run jupyter lab            # 起動 → ブラウザで開く
+uv sync --extra notebook      # 初回のみ
+uv run jupyter lab            # 起動 → ブラウザ
 ```
 
-- 練習場のテンプレート → [`../notebooks/playground.ipynb`](../notebooks/playground.ipynb)
-  （環境表示 → VLA を forward →「1 バッチ過学習」まで動く最小例）。
-- **章ごとにコピー**して使うと整理しやすいです（例: `notebooks/m1.ipynb` を作って M1 の問題を解く）。
-- 詳しい起動方法・進め方は [`../notebooks/README.md`](../notebooks/README.md) を参照。
+| やりたいこと | 開くファイル |
+|---|---|
+| **問題を解く（作業ノート）** | [`../notebooks/exercises/m1.ipynb`](../notebooks/exercises/) …（問題の説明 + 答えを書く空セル） |
+| **答え合わせ（実行できる解答）** | [`../notebooks/solutions/m1.ipynb`](../notebooks/solutions/) または [`solutions/mX/README.md`](../solutions/) |
+| 自由に実験する土台 | [`../notebooks/playground.ipynb`](../notebooks/playground.ipynb) |
+
+進め方: `notebooks/exercises/mX.ipynb` を開く → 先頭のセットアップセルを実行 → 各問の空セルに書いて実行 →
+詰まったら lesson に戻る → 答え合わせは `notebooks/solutions/mX.ipynb`。詳細は [`../notebooks/README.md`](../notebooks/README.md)。
+
+> 演習ノートは*あなたのローカルコピー*なので自由に書き換えて OK。作り直したいときは
+> `uv run --extra notebook python scripts/make_exercise_notebooks.py` で再生成できます。
 
 Jupyter を使わない場合は、各 `mX/` の雛形 `.py`（例 [`m1/starter.py`](m1/starter.py)）をコピーして埋め、
-`uv run python あなたのファイル.py`（または `PYTHONPATH=src python ...`）で実行しても構いません。
+`uv run python あなたのファイル.py` で実行しても構いません。
 
 ## 固定の 5 型（毎章おおむねこの順）
 

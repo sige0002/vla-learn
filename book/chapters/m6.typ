@@ -278,6 +278,22 @@ openpi の config と π0.5 論文から*事実として*挙げます。
   *フロー場の反復積分*（連続）の*両方*で行動を予測するよう学習」と述べています。*高レベル＝離散トークン /
   低レベル＝連続生成*のハイブリッドです。出典: arXiv:2504.16054, 参照 2026-06。
 
+#note[
+  *「pi0.5 を専用ファイルで読みたい」とき*（よくある疑問）: openpi には *`pi05.py` という単独ファイルは無く*、
+  pi0.5 は `pi0.py` を *`pi05=True`* で動かす実装です（差分がフラグとして `pi0.py` / `pi0_config.py` に散らばる）。
+  一方 *Hugging Face LeRobot には pi0.5 専用の policy* があり、pi0.5 を *独立したクラス* として読めます。
+  openpi ＝ 研究の本家(JAX)、LeRobot ＝ PyTorch で他 policy と統一 API、という住み分けです。
+  *pi0.5 だけを集中して読むなら、M5 と同じ PyTorch で書かれた LeRobot 版が分かりやすい*でしょう。
+]
+
+#readcode("src/lerobot/policies/pi05/modeling_pi05.py", target: "PI05Policy / PI05Pytorch.sample_actions")[
+  *LeRobot 版 pi0.5 の専用実装（PyTorch・openpi からの移植）*。`PI05Pytorch.forward` が flow matching の損失、
+  `sample_actions` が `t=1→0` の Euler 積分で行動チャンクを生成——*M5 で自作した `FlowVLA.flow_loss` / `FlowVLA.sample`
+  とそのまま対応*します（ファイル内コメントにも "see openpi" と明記）。設定は同ディレクトリの `configuration_pi05.py`、
+  LeRobot データとの入出力接続は `processor_pi05.py`。openpi の `pi05=True` 経路と同じ思想を、フラグ分岐ではなく
+  *専用クラス*としてまとまった形で読めます。参照 2026-06。
+]
+
 #pitfall[
   *混同しやすい点（重要）*: 「*知識絶縁 (knowledge insulation)*」という定式化は、*π0.5 論文（arXiv:2504.16054）本文
   ではなく、別の後続論文 arXiv:2505.23705 で確立*されたものです。π0.5 論文自体はこの語を使っていません。
