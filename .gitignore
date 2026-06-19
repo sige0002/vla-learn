@@ -3,7 +3,7 @@ __pycache__/
 *.py[cod]
 *.egg-info/
 .eggs/
-build/
+/build/
 dist/
 .pytest_cache/
 .ipynb_checkpoints/
@@ -20,6 +20,11 @@ data/
 *.ckpt
 assets/*.png
 !assets/.gitkeep
+
+# 教材ブック(Typst)の生成物。閲覧用に統合 book.pdf だけ残し、章別/中間は無視。
+# 図 book/figures/*.png は make_figures.py 生成だが、ビルドを即動かせるよう commit する。
+book/build/*
+!book/build/book.pdf
 
 # OS / editor
 .DS_Store

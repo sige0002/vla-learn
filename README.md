@@ -24,9 +24,12 @@
 | M5 flow 版 `FlowVLA`（約 0.58M params）の閉ループ成功率 | **ほぼ 10 割**（ある検証で 1.00、flow_steps=5/10） |
 | 学習時間（CPU, 1500 エピソード × 30〜35 エポック） | 数分程度 |
 
-> 数値は乱数・PC 差でぶれます。大事なのは「学習で loss が下がり、閉ループ成功率が上がる」傾向、そして
-> **同じ部品（FiLM 付き backbone）のまま行動ヘッドを MSE → flow matching に替えると成功率が上がる**こと
-> （= π0 / SmolVLA が flow を使う理由を、自分の手で再現できる）です。
+> 数値は乱数・PC 差でぶれます（参考値）。大事なのは「学習で loss が下がり、閉ループ成功率が上がる」傾向、そして
+> **同じ部品（FiLM 付き backbone）のまま行動ヘッドを MSE → flow matching に差し替えられる**こと
+> （perception と行動生成の分離）を体感することです。
+> なお本書の toy タスクは単峰（正解がほぼ一意）なので、ここで flow が同等以上に動くのは主に経験的な安定性です。
+> π0 / SmolVLA など実用 VLA で flow（生成的な行動ヘッド）が効くのは、**多峰性・連続制御・行動チャンク生成**が
+> 効く場面で、その差は本書の単峰タスクより大きく出ます（M5 で詳説）。
 > M4 では、**画像の空間情報の保持**・**言語の語順の区別**・**FiLM による言語条件付け**の 3 つが
 > そろって初めて grounding（どの色を運ぶか）が機能する、という設計上の勘所も体験します。
 
@@ -49,6 +52,23 @@
 | [M6](lessons/m6_lerobot_and_models.md) | LeRobot と有名 VLA | 自作データの LeRobot export / SmolVLA 精読 + π0・GR00T・OpenVLA・MolmoAct 概観 / 卒業課題 |
 
 各章には**模擬問題（演習）**があります → [`exercises/`](exercises/) と解答 [`solutions/`](solutions/)。
+
+## 📖 2 つの版（Markdown と PDF）
+
+| 版 | 用途 | 入口 |
+|----|------|------|
+| **Markdown**（`lessons/*.md`） | GitHub 上でさっと読む・リンクをたどる | 上の学習マップ |
+| **図表入り PDF**（Typst） | 図・数式・「実装を読む」案内つきで腰を据えて読む | [`book/`](book/) を `uv` でビルド |
+
+```bash
+# 図表入り PDF をビルド（システム TeX 不要・uv だけ。pip の typst パッケージを使用）
+uv run --extra viz  python scripts/make_figures.py    # 図を生成（初回）
+uv run --extra book python scripts/build_book.py      # → book/build/book.pdf と章別 mX.pdf
+```
+
+> PDF 版は図（環境レンダ・forward パイプライン・行動チャンク・flow 経路・成功率など）と、
+> 各章の「次に読むべき実装ファイル（自作 `src/vla_learn/` と有名 VLA の公式 repo）」への案内を
+> 加えた enriched 版です。詳細は [`book/README.md`](book/README.md)。
 
 ## ⚡ セットアップ（[uv](https://docs.astral.sh/uv/) を使います）
 

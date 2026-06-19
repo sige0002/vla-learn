@@ -22,6 +22,9 @@ notebook = [
     "jupyterlab>=4.6.0",
     "matplotlib>=3.10.9",
 ]
+book = [
+    "typst>=0.15.0",
+]
 
 [dependency-groups]
 # 開発用（テスト）。`uv sync` で既定でインストールされる。

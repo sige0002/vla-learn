@@ -1,0 +1,4 @@
+# 生成物のバイナリ扱いを明示（テキスト誤検出による巨大diff・履歴肥大を防ぐ）
+*.pdf binary
+*.png binary
+*.jpg binary
