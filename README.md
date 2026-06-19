@@ -66,7 +66,15 @@ uv sync
 
 # 任意) 可視化(matplotlib)も使うなら extra を足す
 uv sync --extra viz
+
+# 任意) 演習を Jupyter で解くなら（推奨）。notebooks/ が練習場になります
+uv sync --extra notebook
+uv run jupyter lab        # → notebooks/playground.ipynb から
 ```
+
+> **演習・練習コードはどこに書く?** → **Jupyter ノートブックがおすすめ**です（shape・画像・loss が
+> その場で見える）。[`notebooks/playground.ipynb`](notebooks/playground.ipynb) をコピーして章ごとに使ってください。
+> 詳しくは [`notebooks/README.md`](notebooks/README.md) / [`exercises/README.md`](exercises/README.md)。
 
 > `uv sync` は `uv.lock` に固定されたバージョンで環境を再現します。PyTorch は CPU 専用 index
 > から取得する設定（`pyproject.toml` の `[tool.uv.sources]`）なので、GPU/CUDA は不要です。

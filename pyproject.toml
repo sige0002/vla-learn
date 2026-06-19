@@ -17,6 +17,11 @@ dependencies = [
 # 可視化と LeRobot 連携（必須ではない・extra として任意導入）
 viz = ["matplotlib>=3.7"]
 lerobot = ["lerobot"]
+notebook = [
+    "ipykernel>=7.3.0",
+    "jupyterlab>=4.6.0",
+    "matplotlib>=3.10.9",
+]
 
 [dependency-groups]
 # 開発用（テスト）。`uv sync` で既定でインストールされる。
