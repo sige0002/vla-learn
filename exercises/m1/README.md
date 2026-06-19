@@ -8,9 +8,9 @@
 
 ## 進め方
 
-- 環境は [M0](../../lessons/m0_overview.md) のセットアップ済み（`pip install -e .`、`pytest` が通る）が前提です。
+- 環境は [M0](../../lessons/m0_overview.md) のセットアップ済み（`uv sync` 済みで `uv run pytest` が通る）が前提です。
 - すべて **CPU・コピペで動く** ように作っています。Python シェルか、雛形 [`starter.py`](starter.py) を使ってください。
-- 雛形には `TODO` が入っています。`python starter.py` で実行し、各問の `check_qN()` が `OK` を出せば正解です。
+- 雛形には `TODO` が入っています。`uv run python starter.py` で実行し、各問の `check_qN()` が `OK` を出せば正解です。
 - 詰まったら本文の該当節に戻り、それでも分からなければ [`../../solutions/m1/README.md`](../../solutions/m1/README.md) を見ましょう。
 
 ---

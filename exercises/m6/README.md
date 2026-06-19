@@ -40,12 +40,12 @@
    `--chunk-len` を受け付けます。
 
    ```bash
-   python scripts/train_mse.py --n-episodes 400 --epochs 12 --chunk-len 4  --out-dir checkpoints/c4
-   python scripts/train_mse.py --n-episodes 400 --epochs 12 --chunk-len 8  --out-dir checkpoints/c8
-   python scripts/train_mse.py --n-episodes 400 --epochs 12 --chunk-len 16 --out-dir checkpoints/c16
+   uv run python scripts/train_mse.py --n-episodes 400 --epochs 12 --chunk-len 4  --out-dir checkpoints/c4
+   uv run python scripts/train_mse.py --n-episodes 400 --epochs 12 --chunk-len 8  --out-dir checkpoints/c8
+   uv run python scripts/train_mse.py --n-episodes 400 --epochs 12 --chunk-len 16 --out-dir checkpoints/c16
 
    for d in c4 c8 c16; do
-     echo "== $d =="; python scripts/eval_policy.py --ckpt checkpoints/$d/policy.pt --n-episodes 50
+     echo "== $d =="; uv run python scripts/eval_policy.py --ckpt checkpoints/$d/policy.pt --n-episodes 50
    done
    ```
 
@@ -53,10 +53,10 @@
    （学習をやり直す必要はありません。`flow_steps` は**推論時**の Euler 積分ステップ数です）。
 
    ```bash
-   python scripts/train_flow.py --config configs/m5_flow.json   # 1 回学習（または軽量設定で）
+   uv run python scripts/train_flow.py --config configs/m5_flow.json   # 1 回学習（または軽量設定で）
    for s in 2 5 10 20; do
      echo "== flow_steps=$s =="
-     python scripts/eval_policy.py --ckpt checkpoints/flow/policy.pt --n-episodes 50 --flow-steps $s
+     uv run python scripts/eval_policy.py --ckpt checkpoints/flow/policy.pt --n-episodes 50 --flow-steps $s
    done
    ```
 
@@ -90,7 +90,7 @@
 雛形は [`ablation.py`](ablation.py) に置きました。`____` を 3 か所だけ埋めて、3 条件を比較してください。
 
 ```bash
-python exercises/m6/ablation.py
+uv run python exercises/m6/ablation.py
 ```
 
 ### 評価方法
@@ -143,8 +143,8 @@ python exercises/m6/ablation.py
 2. **export スクリプトを実行**: 
 
    ```bash
-   python scripts/make_dataset.py --n-episodes 200 --out data/tabletop2d
-   python scripts/export_lerobot.py --in data/tabletop2d --repo-id your-name/tabletop2d
+   uv run python scripts/make_dataset.py --n-episodes 200 --out data/tabletop2d
+   uv run python scripts/export_lerobot.py --in data/tabletop2d --repo-id your-name/tabletop2d
    ```
 
    lerobot が無ければ「変換 OK・書き込みスキップ」の案内が出ます（**それで正解**）。
@@ -191,6 +191,9 @@ python exercises/m6/ablation.py
   本教材のおもちゃ問題で**どちらが扱いやすいか**を考察する（`dequantize` → 環境へ、の逆変換に注意）。
 - **問いに答える**: ビン数 `K` を小さく（例 5）すると何が起きるか？ 行動の分解能と分類のしやすさの
   トレードオフを説明する。
+- **ビンの使われ方を数える**: 既定（`K=21`, `A_RANGE=3.0`）のとき、正規化済み行動の値域は約 `±1.3` です。
+  実際に使われるビンは 21 個中いくつか、`quantize` で数えてみましょう（ヒント: 端の数ビンは死んでいる）。
+  「`A_RANGE` を実データに合わせて狭めると分解能が上がる」ことも確かめると、量子化の設計が腑に落ちます。
 
 > これは「OpenVLA を再現する」課題ではありません。**「行動を単語に量子化して分類で解く」という発想を、
 > 自分の手で 1 回触る**のが目的です。自己回帰・大規模 VLM・実機データは原典（arXiv:2406.09246）に譲ります。

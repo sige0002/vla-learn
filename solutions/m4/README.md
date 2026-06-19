@@ -169,7 +169,7 @@ print("1 ステップ後の state:", obs["state"])
 ```
 
 - **なぜ逆正規化が要るか**: 学習は正規化空間（平均 0・分散 1）で行うため、モデル出力もその空間。
-  環境 `step` が期待するのは **生のワールド差分**（`dx,dy` は標準偏差 `~0.04`、`MAX_STEP=0.08`）。
+  環境 `step` が期待するのは **生のワールド差分**（`dx,dy` は標準偏差 `~0.065`、`MAX_STEP=0.08`。M3 本文の実測 `[0.065, 0.064, ...]`）。
   逆正規化 `denormalize` で「正しい縮尺」へ戻す。これは `PolicyWrapper.predict_chunk` がやっているのと同じこと。
 - **放置すると**: 学習が進んだ方策ほど正規化出力が `±1〜2` になり、それを生の差分として渡すと環境内で
   `MAX_STEP` にクリップされて毎ステップ最大移動・暴れる、あるいは方向が破綻して掴めない。
@@ -225,10 +225,10 @@ print("OK forward:", tuple(out.shape), " params:", f"{count_parameters(m):,}")
 
 ```bash
 # 配線確認（小規模）
-python scripts/train_mse.py --config configs/smoke.json
+uv run python scripts/train_mse.py --config configs/smoke.json
 # 本番（CPU 数分）→ 学習後に自動評価
-python scripts/train_mse.py --config configs/m4_mse.json
-python scripts/eval_policy.py --ckpt checkpoints/mse/policy.pt --n-episodes 100
+uv run python scripts/train_mse.py --config configs/m4_mse.json
+uv run python scripts/eval_policy.py --ckpt checkpoints/mse/policy.pt --n-episodes 100
 ```
 
 学習ログ・評価の例（数値はぶれます）:

@@ -151,7 +151,7 @@ return self.fc(x)              # [B, out_dim]
 ```
 
 直感: avg は「画面のどこかに赤がある」までしか言えません。`[dx, dy]`（どちらへ動くか）を出すには位置が要るので、
-avg 版は方向の手がかりを失い、**成功率が落ちます**（演習 5 で実測します）。
+avg 版は方向の手がかりを失い、**成功率が落ちます**（[演習 Q8](../exercises/m4/README.md) で実測します）。
 
 > 本物の VLA は事前学習済み ViT（SigLIP 等）を使い、パッチごとのトークン列で空間情報を保ちます。
 > ここで flatten が果たす役割は、その「**空間を潰さない**」ことの最小版です。
@@ -374,16 +374,16 @@ epoch 4  loss=0.06120
 実運用では Python を直書きせず、設定ファイルとスクリプトで回します。
 
 ```bash
-# まずはセットアップ（どちらか一方）
-pip install -e .            # パッケージとして入れる（推奨）
-# もしくは
-export PYTHONPATH=src       # インストールせず src を見せる
+# セットアップは M0 の `uv sync` で完了済み（vla_learn が editable 導入されている）。
+# 以降のコマンドは `uv run python ...` で実行する。
+# uv を使わない場合のフォールバックだけ、src を import パスに見せる:
+export PYTHONPATH=src
 ```
 
 スモークテスト（ごく小規模で配線確認。1〜2 分）。`configs/smoke.json` は `n_episodes=60, epochs=3` 程度です:
 
 ```bash
-python scripts/train_mse.py --config configs/smoke.json
+uv run python scripts/train_mse.py --config configs/smoke.json
 ```
 
 本番設定（`configs/m4_mse.json`）。中身は次のとおりです:
@@ -406,9 +406,9 @@ python scripts/train_mse.py --config configs/smoke.json
 ```
 
 ```bash
-python scripts/train_mse.py --config configs/m4_mse.json
+uv run python scripts/train_mse.py --config configs/m4_mse.json
 # 一部だけ上書きしたいとき（CLI 引数が config より優先）
-python scripts/train_mse.py --config configs/m4_mse.json --epochs 30 --n-episodes 1500
+uv run python scripts/train_mse.py --config configs/m4_mse.json --epochs 30 --n-episodes 1500
 ```
 
 `run_training` は最後に **学習済み方策を保存し、そのまま閉ループ評価** まで行います。出力例（数値はぶれます）:
@@ -472,7 +472,7 @@ while not done:
 学習で保存した `checkpoints/mse/policy.pt` を読み込んで評価します:
 
 ```bash
-python scripts/eval_policy.py --ckpt checkpoints/mse/policy.pt --n-episodes 100
+uv run python scripts/eval_policy.py --ckpt checkpoints/mse/policy.pt --n-episodes 100
 ```
 
 出力例（数値はぶれます）:
@@ -487,7 +487,7 @@ python scripts/eval_policy.py --ckpt checkpoints/mse/policy.pt --n-episodes 100
 
 `success_rate` が「指定色のブロックを指定色のゴールへ運べた割合」です。**7〜8 割** あたりが目安です。
 
-> 目で見たいときは `python scripts/demo_rollout.py --ckpt checkpoints/mse/policy.pt --out assets/rollout.png`
+> 目で見たいときは `uv run python scripts/demo_rollout.py --ckpt checkpoints/mse/policy.pt --out assets/rollout.png`
 > でロールアウトを画像グリッドに保存できます（matplotlib が必要）。指示文と成功可否が表示されます。
 
 ---
@@ -555,7 +555,7 @@ first=0.6149  last=0.0087  (last は first の 1/5 未満が目安)
 ```
 
 > これはリポジトリの [`../tests/test_overfit_tiny_batch.py`](../tests/test_overfit_tiny_batch.py)（`test_mse_overfits_one_batch`）と同じ趣旨です。
-> 学習ループを自作したら、まずこの確認をしてから本番データに進むのが安全です。`pytest -k overfit` でも走らせられます。
+> 学習ループを自作したら、まずこの確認をしてから本番データに進むのが安全です。`uv run pytest -k overfit` でも走らせられます。
 > なお `run_training` には `overfit_one_batch=True` という設定もあり、1 バッチだけを繰り返し学習するモードを `TrainConfig` から使えます。
 
 ---
@@ -571,8 +571,8 @@ first=0.6149  last=0.0087  (last は first の 1/5 未満が目安)
   いずれも消すと **損失は下がっても成功率が落ちる**。
 - **学習**: `masked_mse(pred, action, pad_mask)` を Adam で最小化。`from vla_learn.training.losses import masked_mse`。
   device を揃える / `.train()`/`.eval()` / 正規化を忘れない。
-- **スクリプト**: `python scripts/train_mse.py --config configs/m4_mse.json` で学習 + 自動評価。
-  `python scripts/eval_policy.py --ckpt checkpoints/mse/policy.pt` で閉ループ評価。実測の目安は **成功率およそ 7〜8 割**（ぶれる）。
+- **スクリプト**: `uv run python scripts/train_mse.py --config configs/m4_mse.json` で学習 + 自動評価。
+  `uv run python scripts/eval_policy.py --ckpt checkpoints/mse/policy.pt` で閉ループ評価。実測の目安は **成功率およそ 7〜8 割**（ぶれる）。
 - **閉ループ評価**: `PolicyWrapper`（state 正規化・行動逆正規化・device）＋ receding horizon（`exec_horizon=4`）。
   **損失の低さ ≠ 成功**。
 - **distribution shift**: 「loss は低いのに失敗」は [M2](m2_imitation.md) の分布シフトの再来。`action_noise` と `exec_horizon` で緩和する。

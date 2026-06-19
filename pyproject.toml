@@ -14,10 +14,13 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-# 可視化・テスト・LeRobot 連携（必須ではない）
+# 可視化と LeRobot 連携（必須ではない・extra として任意導入）
 viz = ["matplotlib>=3.7"]
-dev = ["pytest>=7.0"]
 lerobot = ["lerobot"]
+
+[dependency-groups]
+# 開発用（テスト）。`uv sync` で既定でインストールされる。
+dev = ["pytest>=7.0"]
 
 [tool.setuptools.packages.find]
 where = ["src"]
@@ -25,3 +28,17 @@ where = ["src"]
 [tool.pytest.ini_options]
 pythonpath = ["src"]
 testpaths = ["tests"]
+
+# --- uv 設定 -----------------------------------------------------------------
+# PyTorch は CPU 版だけを使う（この教材は CPU のみで完結）。
+# Linux / Windows では PyTorch 公式の CPU 専用 index から取得し、
+# macOS では PyPI 既定（こちらも CPU ビルド）を使う。
+[[tool.uv.index]]
+name = "pytorch-cpu"
+url = "https://download.pytorch.org/whl/cpu"
+explicit = true
+
+[tool.uv.sources]
+torch = [
+    { index = "pytorch-cpu", marker = "sys_platform == 'linux' or sys_platform == 'win32'" },
+]

@@ -296,7 +296,7 @@ pad_mask   shape=(8,)         dtype=torch.float32
 |------|-------|-------|------|----------|
 | `image` | `[3, 64, 64]` | float32 | 視覚入力（その時刻の世界を描画） | `render_world`（都度レンダリング） |
 | `state` | `[3]` | float32 | 固有受容状態 `[ax, ay, gripper]`（**正規化済み**） | `state_normalizer.normalize` |
-| `tokens` | `[max_len]` | int64 | 言語指示の文字 ID 列（PAD=0 で右詰め） | `tokenizer.encode` |
+| `tokens` | `[max_len]` | int64 | 言語指示の文字 ID 列（文字を先頭から並べ、不足分は末尾を PAD=0 で埋める＝右パディング） | `tokenizer.encode` |
 | `action` | `[8, 3]` | float32 | 行動チャンク（**正規化済み**） | `extract_action_chunk` → `action_normalizer.normalize` |
 | `pad_mask` | `[8]` | float32 | 1=有効 / 0=パディング | `extract_action_chunk` |
 

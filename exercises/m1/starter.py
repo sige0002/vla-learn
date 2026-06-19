@@ -10,7 +10,7 @@
 import sys
 from pathlib import Path
 
-# src/ を import パスに追加（pip install -e . 済みなら不要だが保険）
+# src/ を import パスに追加（uv sync 済みなら不要だが保険）
 _SRC = Path(__file__).resolve().parents[2] / "src"
 if str(_SRC) not in sys.path:
     sys.path.insert(0, str(_SRC))

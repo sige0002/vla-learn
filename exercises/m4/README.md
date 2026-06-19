@@ -25,7 +25,7 @@ from vla_learn.training.losses import masked_mse   # = vla_learn.functional.mask
 from vla_learn.utils import set_seed, get_device
 ```
 
-学習・評価をコマンドで回す問題（Q7）は、先に `pip install -e .` か `export PYTHONPATH=src` を済ませてください。
+学習・評価をコマンドで回す問題（Q7）は、先に `uv sync`（または `export PYTHONPATH=src`）を済ませ、`uv run python scripts/...` で実行してください。
 
 ---
 
@@ -170,7 +170,7 @@ print("1 ステップ後の state:", obs["state"])
 ```
 
 直したら、正規化空間の `chunk[0]` と、逆正規化後の `an.denormalize(chunk)[0]` を **両方 print して比べて** ください。
-学習が進んだ方策ほど正規化空間の出力は `±1〜2` に達し、これを生の `dx,dy`（標準偏差 `~0.04`、本文/M3）として
+学習が進んだ方策ほど正規化空間の出力は `±1〜2` に達し、これを生の `dx,dy`（標準偏差 `~0.065`、本文/M3）として
 そのまま渡すと **ワールドスケールに対して桁違いに大きく**、環境内でクリップされて挙動が壊れます。逆正規化が「正しい縮尺」へ戻す役割です。
 
 > ヒント: `chunk_raw = an.denormalize(chunk)`、`a0 = chunk_raw[0].numpy()`。`PolicyWrapper.predict_chunk` がやっているのと同じこと。
@@ -222,14 +222,14 @@ print("OK forward:", tuple(out.shape), " params:", f"{count_parameters(m):,}")
 まずスモークで配線確認（1〜2 分）:
 
 ```bash
-python scripts/train_mse.py --config configs/smoke.json
+uv run python scripts/train_mse.py --config configs/smoke.json
 ```
 
 次に本番設定（CPU で数分）。学習後に自動で評価まで走ります:
 
 ```bash
-python scripts/train_mse.py --config configs/m4_mse.json
-python scripts/eval_policy.py --ckpt checkpoints/mse/policy.pt --n-episodes 100
+uv run python scripts/train_mse.py --config configs/m4_mse.json
+uv run python scripts/eval_policy.py --ckpt checkpoints/mse/policy.pt --n-episodes 100
 ```
 
 確認すること:
@@ -238,7 +238,7 @@ python scripts/eval_policy.py --ckpt checkpoints/mse/policy.pt --n-episodes 100
 2. `eval_policy.py` の `success_rate`（**およそ 7〜8 割** が目安。**環境・乱数でぶれます**）。
 3. `success_rate` がエキスパート（100%）に届かないのはなぜか、本文 7 節（distribution shift）の言葉で 1〜2 行。
 
-（任意）`python scripts/demo_rollout.py --ckpt checkpoints/mse/policy.pt --out assets/rollout.png` で
+（任意）`uv run python scripts/demo_rollout.py --ckpt checkpoints/mse/policy.pt --out assets/rollout.png` で
 ロールアウトを目で見て、指示の色のブロックが運ばれているか確認してください（matplotlib が必要）。
 
 > ヒント: CLI 引数は config より優先（例 `--epochs 30 --n-episodes 1500`）。出力例は本文 5・6 節。
@@ -274,6 +274,8 @@ def train_and_eval(tag, **backbone_kwargs):
 実装メモ: `run_training` は `TinyVLA(vocab_size=..., chunk_len=...)` を既定 backbone で作るため、
 `image_pool` / `condition_vision` を変えるには **本文 4.2 の自前学習ループ**（`TinyVLA(..., image_pool=..., condition_vision=...)`）を
 使うのが簡単です。学習後に `PolicyWrapper` + `evaluate_policy(n_episodes=50〜100)` で成功率を出してください。
+**そのまま動く雛形**は卒業課題②の [`../m6/ablation.py`](../m6/ablation.py)（穴埋め 3 か所）にあります。この Q8 と中身は同じなので、
+自前ループを 1 から書くのが大変なら、そちらを埋めて 3 条件を比較しても構いません。
 
 観察と考察:
 
@@ -317,7 +319,7 @@ print("OK")
 - なぜ「1 バッチに過学習できること」が **学習機構の健全性** の証明になるのか、1〜2 行で。
 - これが通っても本番の `success_rate` が 100% にならないのはなぜか（汎化と過学習の違い、本文 7 節）。
 
-> ヒント: リポジトリの [`../../tests/test_overfit_tiny_batch.py`](../../tests/test_overfit_tiny_batch.py) と同じ趣旨。`pytest -k overfit` でも走ります。
+> ヒント: リポジトリの [`../../tests/test_overfit_tiny_batch.py`](../../tests/test_overfit_tiny_batch.py) と同じ趣旨。`uv run pytest -k overfit` でも走ります。
 
 ---
 

@@ -244,7 +244,7 @@ for k in (1, 5, 10, 50):
 
 - `flow_steps` を増やすと **時間がどう増えるか**（線形か）。理由を「速度ネットを何回呼ぶか」で説明。
 - （任意・学習後）`scripts/train_flow.py` で学習したチェックポイントを使い、
-  `python scripts/eval_policy.py --ckpt checkpoints/flow/policy.pt` を `flow_steps` 違いで比べると、
+  `uv run python scripts/eval_policy.py --ckpt checkpoints/flow/policy.pt` を `flow_steps` 違いで比べると、
   **成功率や final_distance がどう動くか**を観察してください（**重い学習は必須ではありません**）。
   本タスクの直線パスでは、ステップを増やしても改善が早めに頭打ちになりがち——なぜか 1 行で。
 
@@ -285,6 +285,68 @@ print("OK")
 - この「1 バッチ過学習」が通ることは何を保証し、何は**保証しない**か（汎化との違い、[M3](../../lessons/m3_data_actions.md) Q8 と同じ論点）。
 
 > ヒント: 本文 7 節。`encode → velocity → flow_loss → backward → step` の配線チェック。揺れても平均が下がれば正常。
+
+---
+
+## Q9（発展・任意）多峰なターゲットで MSE と flow を**直接**比べる
+
+本章の理論的な山場は「**MSE は答えの平均をとる／flow は複数の峰を引ける**」（[多峰性](../../docs/glossary.md)）でした。
+これを VLA から切り離した **1 次元おもちゃ**で、自分の目で確かめます（CPU で数秒）。
+
+お題: ターゲットを「**+1 か −1 を 50% ずつ**」という**双峰**にして、(a) MSE 回帰、(b) flow matching で学習し、
+生成（予測）の分布を比べます。
+
+```python
+import torch, torch.nn as nn
+torch.manual_seed(0)
+N = 2000
+a1 = (torch.randint(0, 2, (N, 1)).float() * 2 - 1)   # {-1, +1} を 50/50（双峰）
+
+# (a) MSE 回帰: 入力なしで定数を当てる → 平均（≈0）に張り付くはず
+reg = nn.Parameter(torch.zeros(1))
+opt = torch.optim.Adam([reg], lr=0.05)
+for _ in range(300):
+    loss = ((reg - a1) ** 2).mean()
+    opt.zero_grad(); loss.backward(); opt.step()
+print("MSE の予測 (平均に張り付く):", round(reg.item(), 3))   # ≈ 0
+
+# (b) flow matching (rectified, 1 次元・無条件)
+class V(nn.Module):
+    def __init__(self):
+        super().__init__()
+        self.net = nn.Sequential(nn.Linear(2, 64), nn.ReLU(),
+                                 nn.Linear(64, 64), nn.ReLU(), nn.Linear(64, 1))
+    def forward(self, a, tau):
+        return self.net(torch.cat([a, tau[:, None]], dim=-1))
+
+v = V(); opt = torch.optim.Adam(v.parameters(), lr=1e-2)
+for _ in range(2000):
+    idx = torch.randint(0, N, (256,)); x1 = a1[idx]
+    x0 = torch.randn_like(x1); tau = torch.rand(256)
+    xt = (1 - tau)[:, None] * x0 + tau[:, None] * x1
+    loss = ((v(xt, tau) - (x1 - x0)) ** 2).mean()        # 速度 = x1 - x0 を当てる
+    opt.zero_grad(); loss.backward(); opt.step()
+
+with torch.no_grad():                                    # τ=0→1 を Euler 積分して生成
+    a = torch.randn(2000, 1); n = 20; dt = 1 / n
+    for i in range(n):
+        a = a + v(a, torch.full((2000,), i * dt)) * dt
+print(f"flow の生成: <0 の割合={ (a<0).float().mean():.2f}  >=0={ (a>=0).float().mean():.2f}  平均={a.mean():.3f}")
+```
+
+期待される結果（乱数でぶれます）:
+
+```text
+MSE の予測 (平均に張り付く): 0.0 付近
+flow の生成: <0 の割合=0.49  >=0=0.51  平均=0.0 付近
+```
+
+- **MSE はなぜ 0 付近に張り付くのか**を、損失 `mean((pred - target)^2)` の最小化先で 1 行説明（+1 と −1 の中間が二乗誤差最小）。
+- **flow の平均も ≈0 なのに、なぜ「失敗」ではないのか**を 1 行で（平均ではなく**サンプルが ±1 の両方を引ける**＝双峰を再現している）。
+- ヒストグラム（`torch.histc(a.flatten(), bins=21, min=-2, max=2)`）を print すると、**MSE は谷（0 付近のみ）／flow は双峰（±1 に山）**が一目で分かります。
+- これが [M4](../../lessons/m4_tiny_vla_mse.md)（MSE 版 `TinyVLA`）→ [M5](../../lessons/m5_flow_matching.md)（flow 版 `FlowVLA`）へ進む**最大の動機**です。本物の行動データにも「右に避ける／左に避ける」のような双峰があり、平均をとると**どちらでもない不正解**になります。
+
+> ヒント: 本文 1 節（多峰性の図）。`v_target = x1 - x0` は Q4 と同じ。1 次元なので VLA の `[B,C,A]` が消えて発想だけが残ります。
 
 ---
 

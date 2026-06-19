@@ -36,7 +36,9 @@ from vla_learn.utils import set_seed
 CHUNK_LEN = 8
 ACTION_DIM = 3
 K = 21          # ビン数（奇数だと中心 0 を表現できて扱いやすい）
-A_RANGE = 3.0   # 正規化済み行動の想定レンジ [-A_RANGE, A_RANGE] を K ビンに割る
+A_RANGE = 3.0   # 正規化済み行動の想定レンジ [-A_RANGE, A_RANGE] を K ビンに割る。
+                # 実際の正規化済み行動の値域は約 ±1.3 なので、端を切らない安全側に広めにとっている。
+                # その結果、K ビンのうち中央付近だけが実際に使われる点も観察してみよう（課題⑤の問い）。
 
 
 def quantize(a: torch.Tensor) -> torch.Tensor:

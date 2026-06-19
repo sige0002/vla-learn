@@ -69,7 +69,7 @@ def main() -> None:
         from lerobot.common.datasets.lerobot_dataset import LeRobotDataset
     except Exception as e:  # noqa: BLE001
         print("\n[info] lerobot が見つかりません（任意依存）。インストール:")
-        print("       pip install lerobot")
+        print("       uv pip install lerobot   （または uv sync --extra lerobot）")
         print(f"       （詳細: {type(e).__name__}）")
         print("[info] 変換ロジック map_episode_to_frames は lerobot 無しでも利用・テスト可能です。")
         return

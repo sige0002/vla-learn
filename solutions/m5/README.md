@@ -249,7 +249,7 @@ flow_steps=50  out=(4, 8, 3)  mean=... std=...  ~50x ms
 ```
 
 - **時間はほぼ線形**に増える: `sample` は速度ネットを `n_steps` 回呼ぶので、`flow_steps` に比例して重くなる。
-- 学習後の評価（任意）: `python scripts/eval_policy.py --ckpt checkpoints/flow/policy.pt` を
+- 学習後の評価（任意）: `uv run python scripts/eval_policy.py --ckpt checkpoints/flow/policy.pt` を
   `flow_steps` 違いで比べると、**少なすぎる（1 など）と粗くて成功率が落ち**、ある程度（5〜10）で実用域、
   そこから増やしても **改善は頭打ち**になりがち。理由: 本タスクの rectified flow は **直線パス** で
   速度が一定に近く、曲がっていないので少ない刻みでも誤差が小さい。曲がった軌道ほど多ステップが効く。

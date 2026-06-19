@@ -9,7 +9,7 @@
 > - `Dataset` / `DataLoader`（`__len__` / `__getitem__` / バッチ化 / `shuffle`）を使える。
 > - **「1 バッチに過学習できるか」** という学習デバッグの鉄則を理解する。
 >
-> **前提**: [M0](m0_overview.md) を読み、`pip install -e .` 済みで `pytest` が通る状態。
+> **前提**: [M0](m0_overview.md) を読み、`uv sync` 済みで `uv run pytest` が通る状態。
 > Python の関数が書ければ OK。本章のコードはすべて **CPU・コピペで動く** ように書いています。
 >
 > **所要時間**: 90〜120 分（手を動かしながら）。

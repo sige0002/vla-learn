@@ -50,42 +50,53 @@
 
 各章には**模擬問題（演習）**があります → [`exercises/`](exercises/) と解答 [`solutions/`](solutions/)。
 
-## ⚡ セットアップ
+## ⚡ セットアップ（[uv](https://docs.astral.sh/uv/) を使います）
+
+本教材はパッケージ/環境管理に **uv** を使います。`uv sync` 一発で「仮想環境の作成 →
+PyTorch（CPU 版）の導入 → 本パッケージの editable インストール」までを自動で行います。
 
 ```bash
-# 1) 仮想環境
-python3 -m venv .venv
-source .venv/bin/activate     # Windows は .venv\Scripts\activate
+# 0) uv 未導入なら入れる（既にあればスキップ）
+#    macOS / Linux:
+curl -LsSf https://astral.sh/uv/install.sh | sh
+#    Windows (PowerShell):  powershell -c "irm https://astral.sh/uv/install.ps1 | iex"
 
-# 2) PyTorch（CPU 版）と本パッケージ
-pip install torch --index-url https://download.pytorch.org/whl/cpu
-pip install -e .              # vla_learn を import 可能にする
-# 任意: 可視化とテスト
-pip install -e ".[viz,dev]"
+# 1) 依存を同期（.venv 作成・PyTorch CPU 版・vla_learn の editable 導入・pytest まで全自動）
+uv sync
+
+# 任意) 可視化(matplotlib)も使うなら extra を足す
+uv sync --extra viz
 ```
+
+> `uv sync` は `uv.lock` に固定されたバージョンで環境を再現します。PyTorch は CPU 専用 index
+> から取得する設定（`pyproject.toml` の `[tool.uv.sources]`）なので、GPU/CUDA は不要です。
+> 個別に `pip install` する必要はありません。
 
 動作確認（数十秒）:
 
 ```bash
-pytest -q                                  # テストが通れば環境 OK
-python scripts/train_mse.py --config configs/smoke.json   # 小さく学習が回るか
+uv run pytest -q                                              # テストが通れば環境 OK
+uv run python scripts/train_mse.py --config configs/smoke.json   # 小さく学習が回るか
 ```
+
+> `uv run <コマンド>` は、必要なら環境を自動同期してから実行します。`.venv` を手で
+> activate する必要はありません（したい場合は `source .venv/bin/activate` も可）。
 
 ## 🚀 クイックスタート（Capstone を動かす）
 
 ```bash
 # 1) MSE 版 VLA を学習（CPU で数分）
-python scripts/train_mse.py --config configs/m4_mse.json
+uv run python scripts/train_mse.py --config configs/m4_mse.json
 
 # 2) 学習した方策を閉ループ評価（成功率を測る）
-python scripts/eval_policy.py --ckpt checkpoints/mse/policy.pt --n-episodes 100
+uv run python scripts/eval_policy.py --ckpt checkpoints/mse/policy.pt --n-episodes 100
 
 # 3) flow matching 版に発展
-python scripts/train_flow.py --config configs/m5_flow.json
-python scripts/eval_policy.py --ckpt checkpoints/flow/policy.pt --n-episodes 100
+uv run python scripts/train_flow.py --config configs/m5_flow.json
+uv run python scripts/eval_policy.py --ckpt checkpoints/flow/policy.pt --n-episodes 100
 
-# 4) ロールアウトを画像で確認（matplotlib 必要）
-python scripts/demo_rollout.py --ckpt checkpoints/mse/policy.pt --out assets/rollout.png
+# 4) ロールアウトを画像で確認（matplotlib 必要: uv sync --extra viz）
+uv run python scripts/demo_rollout.py --ckpt checkpoints/mse/policy.pt --out assets/rollout.png
 ```
 
 > 数値（成功率など）は乱数・環境差でぶれます。傾向（学習で loss が下がり、成功率が上がる）を見てください。
