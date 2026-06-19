@@ -1,0 +1,16 @@
+{
+  "model_type": "flow",
+  "n_episodes": 1500,
+  "val_episodes": 120,
+  "n_objects": 3,
+  "n_goals": 2,
+  "chunk_len": 8,
+  "epochs": 40,
+  "batch_size": 128,
+  "lr": 0.001,
+  "flow_steps": 10,
+  "eval_episodes": 100,
+  "exec_horizon": 4,
+  "seed": 0,
+  "out_dir": "checkpoints/flow"
+}

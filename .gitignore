@@ -1,0 +1,27 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.eggs/
+build/
+dist/
+.pytest_cache/
+.ipynb_checkpoints/
+
+# venv
+.venv/
+venv/
+env/
+
+# 学習成果物・データ（リポジトリには含めない）
+checkpoints/
+data/
+*.pt
+*.ckpt
+assets/*.png
+!assets/.gitkeep
+
+# OS / editor
+.DS_Store
+.vscode/
+.idea/

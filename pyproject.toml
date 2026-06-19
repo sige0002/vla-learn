@@ -1,0 +1,27 @@
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "vla-learn"
+version = "0.1.0"
+description = "小さな VLA をスクラッチで作って学ぶ日本語教材"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+    "torch>=2.1",
+    "numpy>=1.24",
+]
+
+[project.optional-dependencies]
+# 可視化・テスト・LeRobot 連携（必須ではない）
+viz = ["matplotlib>=3.7"]
+dev = ["pytest>=7.0"]
+lerobot = ["lerobot"]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+pythonpath = ["src"]
+testpaths = ["tests"]
