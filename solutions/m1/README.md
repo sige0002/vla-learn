@@ -219,6 +219,50 @@ OK: 1 バッチに過学習できた = 学習機構は健全
 - **これがテストである理由**: 賢さではなく**配線（パイプライン）の健全性**を測っています。落ちないなら、本文 1.6 のチェックリスト（`zero_grad` 忘れ／`lr` が極端／pred と target の shape 不一致／勾配が `detach`・`no_grad` で切れている／device・dtype 不一致）のどれかが原因です。
 - 実装の [`tests/test_overfit_tiny_batch.py`](../../tests/test_overfit_tiny_batch.py) は、これとほぼ同じことを `TinyVLA` で行い「最後 < 最初 × 0.2」を要求しています。各章でこの確認を続けます。
 
+## Q8.（shape 確認）Conv2d の出力サイズ
+
+公式 `out = (in + 2*padding - kernel) // stride + 1` に代入するだけです。
+
+1. `(64 + 2·1 - 3) // 2 + 1 = 32` → **`[8, 16, 32, 32]`**（チャンネルは `out_channels=16` に変わる）
+2. `(32 + 2·1 - 3) // 2 + 1 = 16` → **`[8, 32, 16, 16]`**
+3. `(64 + 2·0 - 5) // 1 + 1 = 60` → **`[4, 8, 60, 60]`**（padding=0 だと縁の分だけ縮む）
+4. `[8, 32*16*16] = [8, 8192]` → `nn.Linear` の `in_features` は **8192**
+
+> ポイント: `stride=2, kernel=3, padding=1` の組は「**ちょうど半分**」になる定番設定です（本教材の
+> `ImageEncoder` はこれを 4 回重ねて 64→32→16→8→4）。`in_features` の数え間違いは
+> M2 以降の最頻出バグなので、「畳み込みの最終 shape → flatten → Linear」を常に手で言えるようにしておきます。
+
+## Q9.（小実装）保存 → 復元 → 同じ出力（state_dict）
+
+```python
+import torch
+import torch.nn as nn
+
+torch.manual_seed(0)
+model = nn.Sequential(nn.Linear(3, 32), nn.ReLU(), nn.Linear(32, 24))
+x = torch.randn(5, 3)
+y1 = model(x)
+
+torch.save(model.state_dict(), "m1_q9.pt")                    # TODO 1: 重みの辞書だけ保存
+
+model2 = nn.Sequential(nn.Linear(3, 32), nn.ReLU(), nn.Linear(32, 24))  # TODO 2: 同じ構造を作り直す
+model2.load_state_dict(torch.load("m1_q9.pt"))                #          重みを流し込む
+model2.eval()                                                  # TODO 3: 推論モード
+y2 = model2(x)
+
+assert torch.allclose(y1, y2), "復元後の出力が一致しない"
+print("OK: 保存 → 復元 → 同じ出力")
+```
+
+考察:
+- **なぜ state_dict か**: `torch.save(model)` はモデルオブジェクトを pickle するため、**クラス定義の
+  import パスや PyTorch のバージョンに依存**して壊れやすい。「構造はコードで作り直し、重みだけ流し込む」
+  state_dict 方式なら、コードさえあればどの環境でも復元できます。
+- **`policy.pt` が重み以外に保存しているもの**（[`checkpoint.py`](../../src/vla_learn/training/checkpoint.py)）:
+  ① モデル種別とコンストラクタ引数（`model_type` / `model_kwargs` — どのクラスをどう作り直すか）、
+  ② トークナイザ語彙（同じ文字→同じ ID にするため）、③ 行動・状態の正規化統計（M3 の最重要点。
+  これが欠けると「学習時と同じ前処理」が再現できず方策が静かに壊れます）。
+
 ### 発展
 
 - **A**（`zero_grad` を消す）: 勾配が加算され、Adam の更新が過大になって loss が振動・発散しがちになります（下がっても不安定）。「鉄則の逆」を体感できます。

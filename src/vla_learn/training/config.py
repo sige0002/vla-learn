@@ -15,6 +15,9 @@ from ..constants import DEFAULT_CHUNK_LEN
 @dataclass
 class TrainConfig:
     model_type: str = "mse"        # "mse" | "flow"
+    # --- モデル（backbone の ablation 用。M4 演習 Q8 / M6 課題② で使う）---
+    image_pool: str = "flatten"     # "flatten" | "avg"（avg は位置情報を捨てる比較版）
+    condition_vision: bool = True   # False で FiLM 無効（言語で視覚を変調しない比較版）
     # --- データ ---
     n_episodes: int = 800
     val_episodes: int = 120

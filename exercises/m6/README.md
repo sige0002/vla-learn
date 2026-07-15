@@ -81,11 +81,11 @@
   `success_rate` が下がることを観察できる。
 - なぜ落ちるのかを、自分の言葉で説明できる。
 
-### 重要: これは「フラグ」では切り替えられません（小実装課題）
-`image_pool` と `condition_vision` は **`TinyVLA` / `VLABackbone` のコンストラクタ引数**ですが、
-学習スクリプトの `run_training`（[`../../src/vla_learn/training/trainer.py`](../../src/vla_learn/training/trainer.py)）は
-モデルへ `vocab_size` と `chunk_len` **しか渡しません**。したがって ablation は、**自分で短い学習ループを書く**のが
-正攻法です（`TinyVLA` は `**backbone_kwargs` を受けるので、`image_pool=...` / `condition_vision=...` を**直接**渡せます）。
+### この課題は「自分で学習ループを書く」小実装課題です
+`image_pool` と `condition_vision` は **`TinyVLA` / `VLABackbone` のコンストラクタ引数**です。
+`run_training` に config（`TrainConfig.image_pool` / `condition_vision`）で渡す近道もありますが（M4 演習 Q8）、
+この課題の狙いは **学習ループを自分の手で 1 周書けること**の確認なので、ここでは自前ループで実装します
+（`TinyVLA` は `**backbone_kwargs` を受けるので、`image_pool=...` / `condition_vision=...` を**直接**渡せます）。
 
 雛形は [`ablation.py`](ablation.py) に置きました。`____` を 3 か所だけ埋めて、3 条件を比較してください。
 

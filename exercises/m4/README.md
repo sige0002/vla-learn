@@ -253,29 +253,26 @@ uv run python scripts/eval_policy.py --ckpt checkpoints/mse/policy.pt --n-episod
 学習関数を 1 つ用意し、3 条件で学習 → 評価します（CPU で各数分。`m4_mse.json` 相当の規模を推奨）:
 
 ```python
-import json
 from vla_learn.training.config import load_config
 from vla_learn.training.trainer import run_training
 
 def train_and_eval(tag, **backbone_kwargs):
-    # configs/m4_mse.json をベースに out_dir だけ変える
-    cfg = load_config("configs/m4_mse.json", out_dir=f"checkpoints/m4_{tag}")
-    # ※ backbone_kwargs（image_pool / condition_vision）を TinyVLA に渡すには
-    #   下の「実装メモ」を読み、run_training を使う代わりに自前ループで回すか、
-    #   小規模設定（n_episodes を 600〜1000、epochs を 15〜20 程度）で比較してください。
-    ...
+    # configs/m4_mse.json をベースに out_dir と backbone 引数だけ変える
+    # （TrainConfig は image_pool / condition_vision を持ち、run_training が TinyVLA へ渡します）
+    cfg = load_config("configs/m4_mse.json", out_dir=f"checkpoints/m4_{tag}", **backbone_kwargs)
+    return run_training(cfg)
 
 # 比較する 3 条件:
-#  (A) 既定         : image_pool="flatten", condition_vision=True
-#  (B) avg          : image_pool="avg"       （位置情報を捨てる）
-#  (C) FiLM 無し    : condition_vision=False  （言語で視覚を変調しない）
+#  (A) 既定         : train_and_eval("default")
+#  (B) avg          : train_and_eval("avg", image_pool="avg")            （位置情報を捨てる）
+#  (C) FiLM 無し    : train_and_eval("nofilm", condition_vision=False)   （言語で視覚を変調しない）
 ```
 
-実装メモ: `run_training` は `TinyVLA(vocab_size=..., chunk_len=...)` を既定 backbone で作るため、
-`image_pool` / `condition_vision` を変えるには **本文 4.2 の自前学習ループ**（`TinyVLA(..., image_pool=..., condition_vision=...)`）を
-使うのが簡単です。学習後に `PolicyWrapper` + `evaluate_policy(n_episodes=50〜100)` で成功率を出してください。
+実装メモ: 学習の中身を自分の手で握りたい人は、**本文 4.2 の自前学習ループ**
+（`TinyVLA(..., image_pool=..., condition_vision=...)` を直接構築）でも同じ実験ができます。学習後に
+`PolicyWrapper` + `evaluate_policy(n_episodes=50〜100)` で成功率を出してください。
 **そのまま動く雛形**は卒業課題②の [`../m6/ablation.py`](../m6/ablation.py)（穴埋め 3 か所）にあります。この Q8 と中身は同じなので、
-自前ループを 1 から書くのが大変なら、そちらを埋めて 3 条件を比較しても構いません。
+どちらか手に馴染む方で 3 条件を比較すれば OK です。
 
 観察と考察:
 

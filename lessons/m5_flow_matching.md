@@ -394,8 +394,11 @@ uv run python scripts/train_flow.py --config configs/m5_flow.json --flow-steps 5
 ### 5.3 評価（`eval_policy.py`、`flow_steps`）
 
 ```bash
-uv run python scripts/eval_policy.py --ckpt checkpoints/flow/policy.pt                 # 既定 flow_steps=10
-uv run python scripts/eval_policy.py --ckpt checkpoints/flow/policy.pt --flow-steps 5  # 積分ステップを変えて比較
+# 既定（flow_steps=10）
+uv run python scripts/eval_policy.py --ckpt checkpoints/flow/policy.pt
+
+# --flow-steps で積分ステップ数を変えて比較（例: 5）
+uv run python scripts/eval_policy.py --ckpt checkpoints/flow/policy.pt --flow-steps 5
 ```
 
 `PolicyWrapper` は `model_type="flow"` を見て `sample(..., n_steps=flow_steps)` を呼びます。

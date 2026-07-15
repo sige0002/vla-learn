@@ -302,6 +302,28 @@ print(mlp(torch.randn(4, 3)).shape)              # torch.Size([4, 3])
 
 ---
 
+### CNN（nn.Conv2d）の最小知識 — M2 以降の画像入力に備える
+
+M2 からは画像 `[B, 3, 64, 64]` が入力になります。使う道具は実質 `nn.Conv2d` だけなので、最小知識をここで押さえます。
+
+```python
+conv = nn.Conv2d(in_channels=3, out_channels=16, kernel_size=3, stride=2, padding=1)
+x = torch.rand(4, 3, 64, 64)   # [B, C_in, H, W]
+y = conv(x)
+print(y.shape)                  # torch.Size([4, 16, 32, 32]) … 空間サイズが半分に
+```
+
+- **何をする層か**: 小さな窓（`kernel_size=3` なら 3×3）を画像上でスライドさせ、窓ごとの重み付き和を出します。
+  全結合と違い「**近くのピクセルだけを見る**」「**同じ重みを画像全体で使い回す**」のが特徴です。
+- **out_channels**: 「16 種類の窓（フィルタ）を並べる」という意味。出力の各チャンネルは各フィルタの反応マップです。
+- **出力サイズの公式（これだけ暗記）**: `out = (in + 2*padding - kernel) // stride + 1`。
+  上の例は `(64 + 2·1 - 3) // 2 + 1 = 32`。`stride=2` は窓を 1 つ飛ばしで当てるので**空間サイズがほぼ半分**になります。
+- **flatten**: 畳み込みの出力 `[B, 64, 4, 4]` を全結合に入れるときは `x.flatten(1)` で
+  `[B, 64*4*4] = [B, 1024]` に伸ばします（先頭のバッチ次元は残す）。
+
+本教材の `ImageEncoder`（M4）は、この Conv2d（stride=2）を 4 回重ねて `64→32→16→8→4` と縮め、最後に flatten します。
+「stride=2 で毎回半分」と出力サイズの公式さえ手で言えれば、M2 以降の画像まわりの shape は全部自力で追えます。
+
 ## 1.5 学習ループ（損失と optimizer）
 
 ここが PyTorch の心臓部です。**毎ステップ次の 4 つを順番に呼ぶ**だけ、と覚えてください。
@@ -371,6 +393,27 @@ step 150  loss = 0.0017
 > 「loss が下がらない」ときに真っ先に疑う定番バグです。
 
 ---
+
+### 学習したモデルを保存・読み込みする（state_dict）
+
+学習したパラメータはプロセスを閉じると消えます。保存の基本は「モデル本体ではなく
+**state_dict（パラメータ名 → テンソルの辞書）** を保存する」です:
+
+```python
+torch.save(model.state_dict(), "model.pt")        # 保存（重みの辞書だけ）
+
+model2 = nn.Linear(1, 1)                           # 同じ構造を先に作り直す
+model2.load_state_dict(torch.load("model.pt"))    # 重みを流し込む
+model2.eval()                                      # 推論モードにして使う
+```
+
+- **なぜ state_dict か**: モデルオブジェクトごと保存する `torch.save(model)` は、クラス定義の場所や
+  バージョンに依存して壊れやすいのです。「**構造はコードで作り直し、重みだけ流し込む**」が定石です。
+- **復元には構造の情報も要る**: `load_state_dict` は同じ形のモデルにしか入りません。だから実務では
+  重みと一緒に「コンストラクタ引数」も保存します。
+- 本教材の `save_policy` / `load_policy`（[`../src/vla_learn/training/checkpoint.py`](../src/vla_learn/training/checkpoint.py)）は
+  まさにこの定石で、`state_dict` + モデル種別 + コンストラクタ引数 + トークナイザ語彙 + 正規化統計を
+  1 つの `policy.pt` にまとめています（[M4](m4_tiny_vla_mse.md) で中身を開きます）。
 
 ## 1.6 「1 バッチに過学習できるか」――学習デバッグの鉄則
 

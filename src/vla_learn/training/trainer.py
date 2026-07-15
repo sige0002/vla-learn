@@ -64,7 +64,10 @@ def run_training(cfg: TrainConfig) -> dict:
     print(f"[data] {len(ds)} 学習サンプル / vocab={tokenizer.vocab_size}")
 
     # --- モデル構築（ここが違い 1/2）---
-    model_kwargs = dict(vocab_size=tokenizer.vocab_size, chunk_len=cfg.chunk_len)
+    model_kwargs = dict(
+        vocab_size=tokenizer.vocab_size, chunk_len=cfg.chunk_len,
+        image_pool=cfg.image_pool, condition_vision=cfg.condition_vision,
+    )
     model = (FlowVLA if cfg.model_type == "flow" else TinyVLA)(**model_kwargs).to(device)
     print(f"[model] {cfg.model_type} | パラメータ数 = {count_parameters(model):,}")
 

@@ -261,8 +261,19 @@ uv run python scripts/eval_policy.py --ckpt checkpoints/mse/policy.pt --n-episod
 
 ## A8（実験・3 教訓のアブレーション）
 
-`run_training` は既定 backbone で `TinyVLA` を作るため、`image_pool` / `condition_vision` を変えるには
-**自前学習ループ**（本文 4.2）で `TinyVLA(..., image_pool=..., condition_vision=...)` を使うのが簡単です。
+いちばんの近道は `run_training` に config で渡す方法です（`TrainConfig` が `image_pool` /
+`condition_vision` を持ち、そのまま `TinyVLA` に渡ります）:
+
+```python
+from vla_learn.training.config import load_config
+from vla_learn.training.trainer import run_training
+
+for tag, kw in [("default", {}), ("avg", {"image_pool": "avg"}), ("nofilm", {"condition_vision": False})]:
+    cfg = load_config("configs/m4_mse.json", out_dir=f"checkpoints/m4_{tag}", **kw)
+    run_training(cfg)   # 学習 → 保存 → そのまま閉ループ評価まで出力される
+```
+
+学習の中身を自分で握りたい場合の**自前学習ループ**版（本文 4.2 の応用）はこちら:
 
 ```python
 import torch

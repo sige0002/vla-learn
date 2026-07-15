@@ -236,6 +236,54 @@ print("OK: 1 バッチに過学習できた = 学習機構は健全")
 
 ---
 
+## Q8.（shape 確認）Conv2d の出力サイズを手で当てる
+
+本文 1.4 の公式 `out = (in + 2*padding - kernel) // stride + 1` だけで、**実行する前に**答えてください。
+
+1. `nn.Conv2d(3, 16, kernel_size=3, stride=2, padding=1)` に `[8, 3, 64, 64]` を入れた出力 shape は？
+2. 1 の出力に `nn.Conv2d(16, 32, 3, stride=2, padding=1)` を重ねた出力 shape は？
+3. `nn.Conv2d(3, 8, kernel_size=5, stride=1, padding=0)` に `[4, 3, 64, 64]` を入れた出力 shape は？
+4. 2 の出力を `x.flatten(1)` すると shape は？ その次に置く `nn.Linear` の `in_features` はいくつ？
+
+手で答えてから、実行して答え合わせ:
+
+```python
+import torch
+import torch.nn as nn
+
+x = torch.rand(8, 3, 64, 64)
+print(nn.Conv2d(3, 16, 3, stride=2, padding=1)(x).shape)   # 1 の確認（以降も同様に）
+```
+
+---
+
+## Q9.（小実装）保存 → 復元 → 同じ出力を確認する（state_dict）
+
+本文 1.5 の state_dict の定石を、最小モデルで一往復します。
+
+```python
+import torch
+import torch.nn as nn
+
+torch.manual_seed(0)
+model = nn.Sequential(nn.Linear(3, 32), nn.ReLU(), nn.Linear(32, 24))
+x = torch.randn(5, 3)
+y1 = model(x)
+
+# TODO 1: model の state_dict を "m1_q9.pt" に保存する
+# TODO 2: 同じ構造の model2 を作り、保存した重みを読み込む
+# TODO 3: model2 を eval モードにして y2 = model2(x) を計算する
+
+assert torch.allclose(y1, y2), "復元後の出力が一致しない"
+print("OK: 保存 → 復元 → 同じ出力")
+```
+
+**考察（解答で確認）**:
+- なぜ `torch.save(model)`（モデル丸ごと）ではなく `state_dict` を保存するのが定石か？
+- 本教材の `policy.pt`（[`checkpoint.py`](../../src/vla_learn/training/checkpoint.py)）は、重みの他に何を保存しているか。3 つ挙げてください。
+
+---
+
 ### 発展（任意）
 
 - **A**: Q7 で `optimizer.zero_grad()` を**わざと消す**と loss がどうなるか観察してください（鉄則の逆方向の確認）。
