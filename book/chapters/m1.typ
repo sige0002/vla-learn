@@ -329,6 +329,10 @@ print(mlp(torch.randn(4, 3)).shape)              # torch.Size([4, 3])
      ④ optimizer.step()             # パラメータを勾配方向に更新
 ```
 
+#fig("/figures/train_loop.png", caption: [学習ループの 1 周。②③が計算グラフ経由で全パラメータの
+  勾配を書き込み、④が勾配の逆方向へ少しだけ動かす。この 6 箱は M2〜M5 の学習でもそのまま再登場する
+  （モデルと損失が入れ替わるだけ）。生成は #raw("scripts/make_figures.py")。], width: 88%)
+
 === 最小の完全な例: 小さな線形回帰
 
 「$y = 2x + 1$ を当てる」を、本書の道具（`nn.Linear`・MSE・Adam）で学習します。*そのまま
@@ -541,6 +545,24 @@ for epoch in range(5):
 ここでは答え `a` がランダムなので「賢く当てる」のは無理ですが、配線
 （`Dataset → DataLoader → model → loss → backward → step`）が一巡することを確認できます。
 本物のデータ（M3 以降）に差し替えれば、そのまま VLA の学習になります。
+
+== デバッグの型 — shape エラーを最速で潰す
+
+初心者が最も時間を溶かすのは shape エラーです。「型」を決めておくと数分で潰せます。
+
++ *エラーメッセージは最後の行から読む。* 例えば
+  `mat1 and mat2 shapes cannot be multiplied (4x1024 and 64x128)` なら、`mat1` が
+  「実際に流れてきた入力」（`[B=4, 1024]`）、`mat2` が「層が持つ重み」（`in_features=64` の
+  `nn.Linear(64, 128)` の中身）。つまり「1024 次元が来たのに 64 次元を期待する層に入れた」と
+  読めます。*どこで* 起きたかは traceback の中の *自分が書いた `forward` の行* を探します。
++ *関門 assert を置く。* `assert image.shape[1:] == (3, 64, 64), image.shape` のように
+  「ここではこの shape のはず」を宣言しておくと、ズレた瞬間の近くで止まります。
++ *学習の前に `B=2` で 1 周通す。* データ 2 件だけで `forward → loss → backward → step` を
+  1 回実行してから本番へ。#raw("tests/test_model_forward.py") がこの型の実例です
+  （「1 バッチ過学習」はこの発展形）。
++ *`print(x.shape)` を恐れない。* 途中の shape を疑ったら forward に print を挟むのが最速。
+  コメントの shape 注釈 `# [B, 64, 8, 8]`（本書の全コードがそうなっています）も未来の自分への
+  デバッグ支援です。
 
 #summary[
   - *tensor*: 多次元配列。`shape`・`dtype`・`device` を読めることが最重要。float と int、

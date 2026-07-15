@@ -11,7 +11,7 @@
   width: 100%, fill: bg, stroke: (left: 3pt + bar), inset: 10pt, radius: 3pt,
   above: 0.9em, below: 0.9em,
 )[
-  #text(weight: "bold", fill: bar, size: 9.5pt)[#label] #parbreak() #body
+  #text(weight: "bold", fill: bar, size: 9.5pt)[#label] #v(0.25em) #body
 ]
 
 #let goal(body)    = _callout(rgb("#fff7e6"), rgb("#c98a00"), "この章のゴール", body)
@@ -39,9 +39,9 @@
 // ---- 文書設定。book.typ と章スタンドアロンの両方で #show: conf.with(...) する ----
 #let conf(title: none, subtitle: none, date: none, body) = {
   set document(title: if title != none { title } else { "VLA 教材" })
-  set page(paper: "a4", margin: (x: 2.1cm, top: 2.3cm, bottom: 2.2cm), numbering: "1")
+  set page(paper: "a4", margin: (x: 2.5cm, top: 2.3cm, bottom: 2.2cm), numbering: "1")
   set text(font: MAIN_FONT, size: 10.5pt, lang: "ja")
-  set par(justify: true, leading: 0.74em, spacing: 1.05em)
+  set par(justify: true, leading: 0.82em, spacing: 1.15em)
   set heading(numbering: "1.1")
 
   // 見出しスタイル
@@ -72,7 +72,10 @@
   show figure.caption: it => text(size: 8.8pt, fill: rgb("#555"))[#it]
 
   // 表
-  set table(stroke: 0.5pt + rgb("#bbb"), inset: 6pt)
+  set table(
+    stroke: 0.5pt + rgb("#bbb"), inset: 6pt,
+    fill: (_, y) => if y == 0 { rgb("#f0f4f8") },
+  )
   show table.cell.where(y: 0): set text(weight: "bold")
 
   // タイトルページ

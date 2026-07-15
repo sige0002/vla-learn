@@ -66,9 +66,10 @@ uv run --extra viz  python scripts/make_figures.py    # 図を生成（初回）
 uv run --extra book python scripts/build_book.py      # → book/build/book.pdf と章別 mX.pdf
 ```
 
-> PDF 版は図（環境レンダ・forward パイプライン・行動チャンク・flow 経路・成功率など）と、
-> 各章の「次に読むべき実装ファイル（自作 `src/vla_learn/` と有名 VLA の公式 repo）」への案内を
-> 加えた enriched 版です。詳細は [`book/README.md`](book/README.md)。
+> 図（学習ループ・分布シフト・正規化・プーリング/語順/FiLM・flow 経路・多峰性・temporal ensembling など
+> 全 14 枚、`scripts/make_figures.py` でデータ駆動生成）は **Markdown 版の本文にも埋め込み済み**です。
+> PDF 版はさらに数式組版と、各章の「次に読むべき実装ファイル（自作 `src/vla_learn/` と有名 VLA の公式 repo）」
+> への案内を加えた enriched 版です。詳細は [`book/README.md`](book/README.md)。
 
 ## ⚡ セットアップ（[uv](https://docs.astral.sh/uv/) を使います）
 
